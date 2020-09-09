@@ -1,0 +1,48 @@
+{
+  "name": "product-search-demo",
+  "description": "Product Search Demo",
+  "author": "Neil Kolban <kolban@google.com>",
+  "repository": {
+    "type": "git",
+    "url": "https://source.developers.google.com/p/kolban-repos/r/product-search-demo"
+
+  },
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "@google-cloud/functions-framework": "^1.7.1",
+    "@google-cloud/vision": "^2.1.1",
+    "@material-ui/core": "^4.11.0",
+    "@material-ui/icons": "^4.9.1",
+    "@testing-library/jest-dom": "^4.2.4",
+    "@testing-library/react": "^9.5.0",
+    "@testing-library/user-event": "^7.2.1",
+    "axios": "^0.20.0",
+    "material-ui-dropzone": "^3.4.0",
+    "react": "^16.13.1",
+    "react-dom": "^16.13.1",
+    "react-scripts": "3.4.3"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject",
+    "cf": "functions-framework --port 9876 --source cloud_function.js --target function --signature-type http"
+  },
+  "eslintConfig": {
+    "extends": "react-app"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
+}

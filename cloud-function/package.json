@@ -1,0 +1,20 @@
+{
+  "name": "cloud-function",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Cloud function processor for Product Search demonstration.",
+  "main": "cloud_function.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "@google-cloud/vision": "^2.1.1"
+  },
+  "author": "Neil Kolban <kolban@google.com>",
+  "repository": {
+    "type": "git",
+    "url": "https://source.developers.google.com/p/kolban-repos/r/product-search-demo"
+
+  },
+  "license": "ISC"
+}
