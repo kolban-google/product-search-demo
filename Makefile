@@ -8,6 +8,7 @@ GCS-PREFIX=gs://kolban-fashion-products
 all:
 	@echo "Configuration"
 	@echo "-------------"
+	@echo "run-react                 - Run the REACT environment."
 	@echo "run-cloud-function-local  - Run the test Cloud Functions handler for local testing."
 	@echo "test-cloud-function       - Make a REST call to the Cloud Function handler (GCP)."
 	@echo "test-cloud-function-local - Make a REST call to the Cloud Function handler (local)."
@@ -16,6 +17,10 @@ all:
 	@echo "enable-services           - Enable the GCP services we need."
 	@echo "describe-product-search   - Examine the Product Search definition."
 
+
+# Run react
+run-react:
+	HTTPS=true npm start
 
 # Run the local Cloud Function test framework.
 run-cloud-function-local:

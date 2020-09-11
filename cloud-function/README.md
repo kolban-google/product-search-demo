@@ -30,6 +30,23 @@ be exposed as environment variables is we go further.
 * `REGION` - The Region hosting the Product Search definitions.
 * `PRODUCT_SET_ID` - The name of the product set within the Product Search definitions that we are searching within.
 
+## Response
+The response from the Cloud Function must be a JSON string of the format:
+
+```
+[
+  {
+    "productName": <String>,
+    "displayName": <String>,
+    "score": <Float>,
+    "uri": <String>
+  },
+  ...
+]
+```
+
+With `Content-Type: application/json` header value and response code of `200`.  A response other than `200` means an error.
+
 
 ## Debugging
 Should we wish to run this function locally, we can do that using the Functions Framework.  When using that feature, we must supply
