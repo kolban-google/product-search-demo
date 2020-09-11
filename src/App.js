@@ -14,6 +14,11 @@ import Typography from '@material-ui/core/Typography';
 import Toolbar from '@material-ui/core/Toolbar';
 import LinearProgress from '@material-ui/core/LinearProgress';
 import Webcam from "react-webcam";
+import Radio from '@material-ui/core/Radio';
+import RadioGroup from '@material-ui/core/RadioGroup';
+import FormControlLabel from '@material-ui/core/FormControlLabel';
+import FormControl from '@material-ui/core/FormControl';
+import FormLabel from '@material-ui/core/FormLabel';
 
 /*
 const sampleData = [{ "displayName": "Myntra Men's Brain Black T-shirt", "productName": "projects/test1-253523/locations/us-east1/products/3365", "score": 0.3483123481273651, "uri": "gs://kolban-fashion-products/images/3365.jpg" }, { "displayName": "Myntra Men's I am a nice guy Navy Blue T-shirt", "productName": "projects/test1-253523/locations/us-east1/products/3353", "score": 0.3360078036785126, "uri": "gs://kolban-fashion-products/images/3353.jpg" }, { "displayName": "Flying Machine Men Tee Black T-shirt", "productName": "projects/test1-253523/locations/us-east1/products/35971", "score": 0.31081119179725647, "uri": "gs://kolban-fashion-products/images/35971.jpg" }, { "displayName": "Myntra Men Black Printed T-shirt", "productName": "projects/test1-253523/locations/us-east1/products/34408", "score": 0.30468350648880005, "uri": "gs://kolban-fashion-products/images/34408.jpg" }, { "displayName": "Locomotive Men Navy Blue Printed T-shirt", "productName": "projects/test1-253523/locations/us-east1/products/24062", "score": 0.3008976876735687, "uri": "gs://kolban-fashion-products/images/24062.jpg" }, { "displayName": "Nike Men Dunk High Grey Casual Shoes", "productName": "projects/test1-253523/locations/us-east1/products/22733", "score": 0.2863667905330658, "uri": "gs://kolban-fashion-products/images/22733.jpg" }, { "displayName": "Locomotive Men Printed Brown TShirt", "productName": "projects/test1-253523/locations/us-east1/products/16501", "score": 0.2814158797264099, "uri": "gs://kolban-fashion-products/images/16501.jpg" }, { "displayName": "Indigo Nation Men Printed Black T-shirt", "productName": "projects/test1-253523/locations/us-east1/products/29584", "score": 0.2806089222431183, "uri": "gs://kolban-fashion-products/images/29584.jpg" }, { "displayName": "ADIDAS Men's Graphic White T-shirt", "productName": "projects/test1-253523/locations/us-east1/products/5838", "score": 0.2796860933303833, "uri": "gs://kolban-fashion-products/images/5838.jpg" }, { "displayName": "ADIDAS Men's Twelve Faster T-shirt", "productName": "projects/test1-253523/locations/us-east1/products/5865", "score": 0.27686807513237, "uri": "gs://kolban-fashion-products/images/5865.jpg" }]
@@ -36,7 +41,11 @@ class App extends React.Component {
     this.state = {
       products: [],
       loading: false,
-      useWebcam: false
+      useWebcam: false,
+      cameraFacing: "front",
+      "videoConstraints": {
+        "facingMode": "user"  // Direction of camera for phones which have multiple cameras.
+      }
     }
     this.webcamRef = React.createRef();
     this.snapWebcam = this.snapWebcam.bind(this);
@@ -113,7 +122,6 @@ class App extends React.Component {
             <Button color="primary" variant="contained" onClick={
               () => {
                 this.setState({"useWebcam": true});
-                console.log("Set useWebcam to true");
               }
             }>Webcam</Button>
           ):(<div></div>)}
@@ -126,8 +134,32 @@ class App extends React.Component {
                   screenshotFormat="image/png"
                   width={320} height={160}
                   ref={this.webcamRef}
+                  videoConstraints={this.state.videoConstraints}
                 />
                 <Button color="primary" variant="contained" onClick={this.snapWebcam}>Snap!</Button>
+                { /* Handle the radio button for direction of camera (front or back) */}
+                <FormControl>
+                  <FormLabel>Direction</FormLabel>
+                  <RadioGroup value={this.state.cameraFacing} onChange={(event) => {
+                    this.setState({cameraFacing: event.target.value});
+                    if (event.target.value === "front") {
+                      this.setState({videoConstraints: {
+                        "facingMode": "user"
+                      }});
+                      
+                    } else {
+                      this.setState({videoConstraints: {
+                        "facingMode": {
+                          "exact": "environment"
+                        }
+                      }});
+                    }
+                  }}>
+                    <FormControlLabel label="Front" value="front" control={<Radio/>}/>
+                    <FormControlLabel label="Back" value="back" control={<Radio/>}/>
+                  </RadioGroup>
+                </FormControl>
+                { /* End of radio button for direction camera */ }
               </div>
             ) : (
               <DropzoneArea
