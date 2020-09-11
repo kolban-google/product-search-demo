@@ -19,6 +19,7 @@ import RadioGroup from '@material-ui/core/RadioGroup';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import FormControl from '@material-ui/core/FormControl';
 import FormLabel from '@material-ui/core/FormLabel';
+import Alert from '@material-ui/lab/Alert'
 
 /*
 const sampleData = [{ "displayName": "Myntra Men's Brain Black T-shirt", "productName": "projects/test1-253523/locations/us-east1/products/3365", "score": 0.3483123481273651, "uri": "gs://kolban-fashion-products/images/3365.jpg" }, { "displayName": "Myntra Men's I am a nice guy Navy Blue T-shirt", "productName": "projects/test1-253523/locations/us-east1/products/3353", "score": 0.3360078036785126, "uri": "gs://kolban-fashion-products/images/3353.jpg" }, { "displayName": "Flying Machine Men Tee Black T-shirt", "productName": "projects/test1-253523/locations/us-east1/products/35971", "score": 0.31081119179725647, "uri": "gs://kolban-fashion-products/images/35971.jpg" }, { "displayName": "Myntra Men Black Printed T-shirt", "productName": "projects/test1-253523/locations/us-east1/products/34408", "score": 0.30468350648880005, "uri": "gs://kolban-fashion-products/images/34408.jpg" }, { "displayName": "Locomotive Men Navy Blue Printed T-shirt", "productName": "projects/test1-253523/locations/us-east1/products/24062", "score": 0.3008976876735687, "uri": "gs://kolban-fashion-products/images/24062.jpg" }, { "displayName": "Nike Men Dunk High Grey Casual Shoes", "productName": "projects/test1-253523/locations/us-east1/products/22733", "score": 0.2863667905330658, "uri": "gs://kolban-fashion-products/images/22733.jpg" }, { "displayName": "Locomotive Men Printed Brown TShirt", "productName": "projects/test1-253523/locations/us-east1/products/16501", "score": 0.2814158797264099, "uri": "gs://kolban-fashion-products/images/16501.jpg" }, { "displayName": "Indigo Nation Men Printed Black T-shirt", "productName": "projects/test1-253523/locations/us-east1/products/29584", "score": 0.2806089222431183, "uri": "gs://kolban-fashion-products/images/29584.jpg" }, { "displayName": "ADIDAS Men's Graphic White T-shirt", "productName": "projects/test1-253523/locations/us-east1/products/5838", "score": 0.2796860933303833, "uri": "gs://kolban-fashion-products/images/5838.jpg" }, { "displayName": "ADIDAS Men's Twelve Faster T-shirt", "productName": "projects/test1-253523/locations/us-east1/products/5865", "score": 0.27686807513237, "uri": "gs://kolban-fashion-products/images/5865.jpg" }]
@@ -42,10 +43,12 @@ class App extends React.Component {
       products: [],
       loading: false,
       useWebcam: false,
+      webcamDisabled: true,
       cameraFacing: "front",
       "videoConstraints": {
         "facingMode": "user"  // Direction of camera for phones which have multiple cameras.
-      }
+      },
+      alert: null
     }
     this.webcamRef = React.createRef();
     this.snapWebcam = this.snapWebcam.bind(this);
@@ -109,7 +112,7 @@ class App extends React.Component {
 
     return (
       <div>
-
+        {this.state.alert != null?(<Alert severity="error">{this.state.alert}</Alert>):(<div />)}
         <AppBar position="static">
           <Toolbar>
             <Typography variant="h4">Product Search</Typography>
@@ -135,8 +138,16 @@ class App extends React.Component {
                   width={320} height={160}
                   ref={this.webcamRef}
                   videoConstraints={this.state.videoConstraints}
+                  onUserMediaError={(error) => {
+                    console.log(error);
+                    this.setState({webcamDisabled: true, alert: "Camera failure"});
+                  }}
+                  onUserMedia={(event) => {
+                    console.log(event);
+                    this.setState({webcamDisabled: false});
+                  }}
                 />
-                <Button color="primary" variant="contained" onClick={this.snapWebcam}>Snap!</Button>
+                <Button color="primary" variant="contained" onClick={this.snapWebcam} disabled={this.state.webcamDisabled}>Snap!</Button>
                 { /* Handle the radio button for direction of camera (front or back) */}
                 <FormControl>
                   <FormLabel>Direction</FormLabel>
@@ -155,8 +166,8 @@ class App extends React.Component {
                       }});
                     }
                   }}>
-                    <FormControlLabel label="Front" value="front" control={<Radio/>}/>
-                    <FormControlLabel label="Back" value="back" control={<Radio/>}/>
+                    <FormControlLabel label="Front" value="front" control={<Radio disabled={this.state.webcamDisabled}/>}/>
+                    <FormControlLabel label="Back" value="back" control={<Radio disabled={this.state.webcamDisabled}/>}/>
                   </RadioGroup>
                 </FormControl>
                 { /* End of radio button for direction camera */ }
