@@ -5,11 +5,10 @@ import Button from '@material-ui/core/Button';
 import GridList from '@material-ui/core/GridList';
 import GridListTile from '@material-ui/core/GridListTile';
 import GridListTileBar from '@material-ui/core/GridListTileBar';
-import InfoIcon from '@material-ui/icons/Info';
+import Grid from '@material-ui/core/Grid';
 import IconButton from '@material-ui/core/IconButton';
 import { DropzoneArea } from 'material-ui-dropzone';
 import AppBar from '@material-ui/core/AppBar';
-//import Paper from '@material-ui/core/Paper';
 import Typography from '@material-ui/core/Typography';
 import Toolbar from '@material-ui/core/Toolbar';
 import LinearProgress from '@material-ui/core/LinearProgress';
@@ -19,37 +18,74 @@ import RadioGroup from '@material-ui/core/RadioGroup';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import FormControl from '@material-ui/core/FormControl';
 import FormLabel from '@material-ui/core/FormLabel';
-import Alert from '@material-ui/lab/Alert'
+import Alert from '@material-ui/lab/Alert';
+import Dialog from '@material-ui/core/Dialog';
+import DialogContent from '@material-ui/core/DialogContent';
+import DialogContentText from '@material-ui/core/DialogContentText';
+import DialogActions from '@material-ui/core/DialogActions';
+import DialogTitle from '@material-ui/core/DialogTitle';
+import Container from '@material-ui/core/Container';
+import Backdrop from '@material-ui/core/Backdrop';
+import CircularProgress from '@material-ui/core/CircularProgress';
+import { withStyles } from "@material-ui/core/styles";
+import PhotoCameraIcon from '@material-ui/icons/PhotoCamera';
+import CloudUploadIcon from '@material-ui/icons/CloudUpload';
+import InfoIcon from '@material-ui/icons/Info';
 
-/*
-const sampleData = [{ "displayName": "Myntra Men's Brain Black T-shirt", "productName": "projects/test1-253523/locations/us-east1/products/3365", "score": 0.3483123481273651, "uri": "gs://kolban-fashion-products/images/3365.jpg" }, { "displayName": "Myntra Men's I am a nice guy Navy Blue T-shirt", "productName": "projects/test1-253523/locations/us-east1/products/3353", "score": 0.3360078036785126, "uri": "gs://kolban-fashion-products/images/3353.jpg" }, { "displayName": "Flying Machine Men Tee Black T-shirt", "productName": "projects/test1-253523/locations/us-east1/products/35971", "score": 0.31081119179725647, "uri": "gs://kolban-fashion-products/images/35971.jpg" }, { "displayName": "Myntra Men Black Printed T-shirt", "productName": "projects/test1-253523/locations/us-east1/products/34408", "score": 0.30468350648880005, "uri": "gs://kolban-fashion-products/images/34408.jpg" }, { "displayName": "Locomotive Men Navy Blue Printed T-shirt", "productName": "projects/test1-253523/locations/us-east1/products/24062", "score": 0.3008976876735687, "uri": "gs://kolban-fashion-products/images/24062.jpg" }, { "displayName": "Nike Men Dunk High Grey Casual Shoes", "productName": "projects/test1-253523/locations/us-east1/products/22733", "score": 0.2863667905330658, "uri": "gs://kolban-fashion-products/images/22733.jpg" }, { "displayName": "Locomotive Men Printed Brown TShirt", "productName": "projects/test1-253523/locations/us-east1/products/16501", "score": 0.2814158797264099, "uri": "gs://kolban-fashion-products/images/16501.jpg" }, { "displayName": "Indigo Nation Men Printed Black T-shirt", "productName": "projects/test1-253523/locations/us-east1/products/29584", "score": 0.2806089222431183, "uri": "gs://kolban-fashion-products/images/29584.jpg" }, { "displayName": "ADIDAS Men's Graphic White T-shirt", "productName": "projects/test1-253523/locations/us-east1/products/5838", "score": 0.2796860933303833, "uri": "gs://kolban-fashion-products/images/5838.jpg" }, { "displayName": "ADIDAS Men's Twelve Faster T-shirt", "productName": "projects/test1-253523/locations/us-east1/products/5865", "score": 0.27686807513237, "uri": "gs://kolban-fashion-products/images/5865.jpg" }]
-sampleData.forEach((element) => {
-  // Substitute gs:// for http://
-  element.uri = element.uri.replace(/gs:\/\//, 'http://storage.googleapis.com/');
-});
-*/
 
-const REGION="us-east1";
+/**
+ * The results from the Cloud Function that contains Product Search results
+ * looks as follows:
+ * 
+ * [
+ *  {
+ *   "productName": <String>,
+ *   "displayName": <String>,
+ *   "score":       <Float>,
+ *   "uri":         <String>
+ *  },
+ * ...
+ * ]
+ * 
+ * These results are stored in the `state.products` state entry.
+ */
+
+const REGION     = "us-east1";
 const PROJECT_ID = "kolban-product-search";
-const API_KEY="2adbf59c-61fd-46f6-a2c7-2ac924dae30c";
+const API_KEY    = "2adbf59c-61fd-46f6-a2c7-2ac924dae30c";
+
+
 //const CLOUD_FUNCTION_URI="http://localhost:9876";
 const CLOUD_FUNCTION_URI=`https://${REGION}-${PROJECT_ID}.cloudfunctions.net/product-search`;
+
+const useStyles = (theme) => ({
+  backdrop: {
+    zIndex: theme.zIndex.drawer + 1,
+    color: '#fff',
+  },
+  title: {
+    flexGrow: 1,
+  },
+});
 
 class App extends React.Component {
   constructor(props) {
     super(props);
     //this.webcamRef = React.useRef(null);
     this.state = {
-      products: [],
+      products: [],  // The products that have been found in search
+      openProoductInfoDialog: false,
       loading: false,
       useWebcam: false,
       webcamDisabled: true,
       cameraFacing: "front",
+      selectedProduct: null,
       "videoConstraints": {
         "facingMode": "user"  // Direction of camera for phones which have multiple cameras.
       },
       alert: null
     }
+
     this.webcamRef = React.createRef();
     this.snapWebcam = this.snapWebcam.bind(this);
   } // End of constructor
@@ -89,8 +125,8 @@ class App extends React.Component {
       // Substitute gs:// for http://
       element.uri = element.uri.replace(/gs:\/\//, 'http://storage.googleapis.com/');
     });
-    this.setState({ "products": retData });
-    this.setState({ "loading": false });
+    this.setState({ "products": retData });  // Set the products that we have received.
+    this.setState({ "loading": false });     // Switch off any loading widgets
   } // End of invokeProductSearch
 
   /**
@@ -109,25 +145,62 @@ class App extends React.Component {
   } // End of fileSelected
 
   render() {
-
+    const { classes } = this.props;
     return (
       <div>
+      <Backdrop open={this.state.loading} className={classes.backdrop}>
+        <CircularProgress color="inherit" />
+      </Backdrop>
+        <Dialog open={this.state.openProoductInfoDialog}>
+          <DialogTitle>Product Information</DialogTitle>
+          <DialogContent dividers>
+
+            <DialogContentText>
+              {
+                this.state.selectedProduct != null ? (
+                  <div>
+                    <p>Product Name: {this.state.selectedProduct.productName}</p>
+                    <p>Display Name: {this.state.selectedProduct.displayName}</p>
+                    <p>Score: {this.state.selectedProduct.score}</p>
+                  </div>
+                ):(<div></div>)
+              }
+            
+            </DialogContentText>
+
+          </DialogContent>
+          <DialogActions>
+            <Button
+              variant="contained"
+              onClick={() => this.setState({openProoductInfoDialog: false})}
+              color="primary"
+            >
+              OK
+            </Button>
+          </DialogActions>
+        </Dialog>
         {this.state.alert != null?(<Alert severity="error">{this.state.alert}</Alert>):(<div />)}
         <AppBar position="static">
           <Toolbar>
-            <Typography variant="h4">Product Search</Typography>
-          </Toolbar>
-        </AppBar>
-
-        <div style={({ margin: "20px" })}>
-          <p>Upload an image for Product searching:</p>
-          { this.state.useWebcam === false?(
+            <Typography variant="h4" className={classes.title}>Product Search</Typography>
+            { this.state.useWebcam == false?(
             <Button color="primary" variant="contained" onClick={
               () => {
                 this.setState({"useWebcam": true});
               }
-            }>Webcam</Button>
-          ):(<div></div>)}
+            }><PhotoCameraIcon/>&nbsp;Camera</Button>
+            ): (
+              <Button color="primary" variant="contained" onClick={
+                () => {
+                  this.setState({"useWebcam": false});
+                }
+              }><CloudUploadIcon/>&nbsp;Upload</Button>
+            )}
+          </Toolbar>
+        </AppBar>
+
+        <div style={({ margin: "20px" })}>
+          <p>Select an image for Product searching:</p>
 
           <div>
           {
@@ -173,39 +246,49 @@ class App extends React.Component {
                 { /* End of radio button for direction camera */ }
               </div>
             ) : (
-              <DropzoneArea
-                acceptedFiles={['image/*']}
-                dropzoneText={"Drag and drop an image here or click to perform a Product Search"}
-                filesLimit={1}
-                showAlerts={['error']}
-                showPreviews={false}
-                onChange={(files) => { if (files.length > 0) this.fileSelected(files) }}
-              />
+              <Grid container>
+                <Grid item xs={6}>
+                <DropzoneArea
+                  acceptedFiles={['image/*']}
+                  dropzoneText={"Drag and drop an image here or click to perform a Product Search"}
+                  filesLimit={1}
+                  showAlerts={['error']}
+                  showPreviews={false}
+                  onChange={(files) => { if (files.length > 0) this.fileSelected(files) }}
+                />
+                </Grid>
+              </Grid>
             )
           }
           </div>
-          <GridList cellHeight="auto" cols={5}>
-            {
-              this.state.loading ? (<LinearProgress style={({width: '100%', height: "8px", marginTop: '8px'})}/>) : (
-              this.state.products.map((item) => (
-                <GridListTile key={item.uri}>
-                  <img src={item.uri} key={item.uri} alt="none" />
-                  <GridListTileBar title={item.displayName}
-                    actionIcon={
-                      <IconButton>
-                        <InfoIcon />
-                      </IconButton>
-                    }>
-                  </GridListTileBar>
-                </GridListTile>
-              ))
-              )
-            }
-          </GridList>
+          <Container maxWidth="sm">
+            <GridList cellHeight={200} cols={5}>
+              {
+                this.state.loading ? (<LinearProgress style={({width: '100%', height: "8px", marginTop: '8px'})}/>) : (
+                this.state.products.map((item) => (
+                  <GridListTile key={item.uri}>
+                    <img src={item.uri} key={item.uri} alt="none" />
+                    <GridListTileBar title={Math.round(item.score*1000)/1000}
+                      actionIcon={
+                        <IconButton onClick={() => {
+                          console.log(item);
+                          this.setState({selectedProduct: item});
+                          this.setState({openProoductInfoDialog: true});
+                        }}>
+                          <InfoIcon />
+                        </IconButton>
+                      }>
+                    </GridListTileBar>
+                  </GridListTile>
+                ))
+                )
+              }
+            </GridList>
+          </Container>
         </div>
       </div>
     );
   }
 }
 
-export default App;
+export default withStyles(useStyles)(App);

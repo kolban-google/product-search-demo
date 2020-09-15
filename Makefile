@@ -3,7 +3,8 @@ REGION=us-east1
 PROJECT=kolban-product-search
 API-KEY=2adbf59c-61fd-46f6-a2c7-2ac924dae30c
 SERVICE-ACCOUNT=demo-sa@kolban-product-search.iam.gserviceaccount.com
-GCS-PREFIX=gs://kolban-fashion-products
+GCS-PREFIX=gs://kolban-fashion-products/fashion-dataset
+PRODUCT_SEARCH_PRODUCT_SET=my_product_set
 
 all:
 	@echo "Configuration"
@@ -15,7 +16,9 @@ all:
 	@echo "deploy-function           - Deploy the Cloud Function to GCP."
 	@echo "delete-function           - Delete the Cloud Function."
 	@echo "enable-services           - Enable the GCP services we need."
+	@echo "create-product-search     - Create the definitions for Product Search."
 	@echo "describe-product-search   - Examine the Product Search definition."
+	@echo "delete-product-search     - Delete the definitions for Product Search."
 
 
 # Run react
@@ -71,12 +74,35 @@ enable-services:
 
 # Create the product search information from the CSV data describing the product-set/products/images.
 create-product-search:
-	gcloud beta ml vision product-search product-sets import $(GCS-PREFIX)/new.csv \
-		--location $(REGION) \
-		--project $(PROJECT)
+	gcloud beta ml vision product-search product-sets import $(GCS-PREFIX)/0_9999.csv --location $(REGION) --project $(PROJECT) > /tmp/product_search.log
+	gcloud beta ml vision product-search product-sets import $(GCS-PREFIX)/10000_19999.csv --location $(REGION) --project $(PROJECT) >> /tmp/product_search.log
+	gcloud beta ml vision product-search product-sets import $(GCS-PREFIX)/20000_29999.csv --location $(REGION) --project $(PROJECT) >> /tmp/product_search.log
+	gcloud beta ml vision product-search product-sets import $(GCS-PREFIX)/30000_39999.csv --location $(REGION) --project $(PROJECT) >> /tmp/product_search.log
+	gcloud beta ml vision product-search product-sets import $(GCS-PREFIX)/40000_44424.csv --location $(REGION) --project $(PROJECT) >> /tmp/product_search.log
 
 # Display the details of the product search entry for the product set called "my_product_set".  Watch for index time being recent.
 describe-product-search:
 	gcloud beta ml vision product-search product-sets describe my_product_set \
 		--location $(REGION) \
 		--project $(PROJECT)
+
+# Delete the definitions for product search.  This includes products and product-sets.
+delete-product-search:
+	gcloud beta ml vision product-search product-sets delete $(PRODUCT_SEARCH_PRODUCT_SET) --location=$(REGION) --quiet --project $(PROJECT)
+	gcloud beta ml vision product-search product-sets list --location=$(REGION) --project $(PROJECT)
+	gcloud alpha ml vision product-search products delete-all $(REGION) --product-set $(PRODUCT_SEARCH_PRODUCT_SET) --force --project $(PROJECT)
+	gcloud alpha ml vision product-search products delete-all $(REGION) --orphan-products --force --project $(PROJECT)
+	gcloud beta ml vision product-search products list --location=$(REGION) --project $(PROJECT)
+	
+
+upload-csv:
+	gsutil cp 0_9999.csv $(GCS-PREFIX)
+	gsutil cp 10000_19999.csv $(GCS-PREFIX)
+	gsutil cp 10000_19999.csv $(GCS-PREFIX)
+	gsutil cp 20000_29999.csv $(GCS-PREFIX)
+	gsutil cp 30000_39999.csv $(GCS-PREFIX)
+	gsutil cp 40000_44424.csv $(GCS-PREFIX)
+
+deploy:
+	npm run build
+	cd firebase; firebase deploy
