@@ -12,9 +12,9 @@ import datetime
 
 now = datetime.datetime.now()
 folder_id = now.strftime('%Y%m%d' + '-' + '%H%M%S')
-#Destination_Folder = input('Input your folder directory: ')
-#dest_folder = Destination_Folder + folder_id + '/'
-dest_folder = '/Users/waleowoeye/Documents/Working/imageScrape/' + folder_id + '/'
+Destination_Folder = input('Input your folder directory: ')
+dest_folder = Destination_Folder + folder_id + '/'
+
 os.makedirs(dest_folder, exist_ok=True)
 
 image_store = 'gs://prod-search-tool/' + folder_id
@@ -76,8 +76,3 @@ for page in pageTags:
     except Exception:
         print(Exception)
         continue
-
-
-
-
-
