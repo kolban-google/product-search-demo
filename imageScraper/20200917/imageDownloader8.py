@@ -12,10 +12,12 @@ import datetime
 
 now = datetime.datetime.now()
 folder_id = now.strftime('%Y%m%d' + '-' + '%H%M%S')
-Destination_Folder = 'Input your folder directory: '
-dest_folder = Destination_Folder + folder_id + '/'
+#Destination_Folder = input('Input your folder directory: ')
+#dest_folder = Destination_Folder + folder_id + '/'
+dest_folder = '/Users/waleowoeye/Documents/Working/imageScrape/' + folder_id + '/'
 os.makedirs(dest_folder, exist_ok=True)
 
+image_store = 'gs://prod-search-tool/' + folder_id
 
 if (not os.environ.get('PYTHONHTTPSVERIFY', '') and getattr(ssl, '_create_unverified_context', None)):
     ssl._create_default_https_context = ssl._create_unverified_context
@@ -29,36 +31,51 @@ page = soup.body
 pageTags = soup.find_all("div", {"class": "product"})
 os.makedirs(dest_folder, exist_ok=True)
 
+
+with open(dest_folder + 'product_search.csv', 'w') as csvfile:
+    tagwriter = csv.writer(csvfile, delimiter=',')
+    tagwriter.writerow(['image_uri', 'image_id', 'product_set_id', 'product_id', 'product_category', \
+                        'product_display_name', 'labels', 'bounding_poly'])
+
+with open(dest_folder + 'metadata_full.csv', 'w') as csvfile:
+    tagwriter = csv.writer(csvfile, delimiter=',')
+    tagwriter.writerow(['image_uri', 'image_id', 'product_set_id', 'product_id', 'product_category', \
+                        'product_display_name', 'labels', 'bounding_poly', 'src', 'product_page', 'product_availability'])
+
 for page in pageTags:
     container_a = page.find('a')
     container_img = container_a.find('img')
 
     container_href = container_a.get('href')
-
-    image_uri = 'GCS Storage'
-    image_id = 'none'
+    product_id = container_img.get('data-pid')
+    image_uri = image_store + '/' + product_id + '.jpg'
+    image_id = ''
     product_set_id = 'athome'  # merchant_id
     product_id = container_img.get('data-pid')
-    product_category = 'category'  # category
+    product_category = 'general-v1'  # category
     product_display_name = container_img.get('title')
-    labels = 'none'
-    bounding_poly = 'none'
+    labels = ''
+    bounding_poly = ''
     src = container_img.get('src')
     product_page = 'https://athome.com' + container_href
     product_availability = container_img.get('data-stock')
 
     try:
         wget.download(src, out=dest_folder)
-        with open(dest_folder + 'metadata.csv', 'a') as csvfile:
+        with open(dest_folder + 'product_search.csv', 'a') as csvfile:
             tagwriter = csv.writer(csvfile, delimiter=',')
             tagwriter.writerow([image_uri, image_id, product_set_id, product_id, product_category, \
-                                product_display_name, labels, bounding_poly, src, product_page, product_availability])
+                                product_display_name, labels, bounding_poly])
+
+        with open(dest_folder + 'metadata_full.csv', 'a') as csvfile:
+            tagwriter = csv.writer(csvfile, delimiter=',')
+            tagwriter.writerow([image_uri, image_id, product_set_id, product_id, product_category, \
+                                product_display_name, labels, bounding_poly, src, product_page, \
+                                product_availability])
 
     except Exception:
         print(Exception)
         continue
-
-
 
 
 
