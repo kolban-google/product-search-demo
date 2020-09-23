@@ -31,7 +31,6 @@ page = soup.body
 pageTags = soup.find_all("div", {"class": "product"})
 os.makedirs(dest_folder, exist_ok=True)
 
-#print(pageTags)
 
 
 with open(dest_folder + 'product_search.csv', 'w') as csvfile:
@@ -39,10 +38,10 @@ with open(dest_folder + 'product_search.csv', 'w') as csvfile:
     tagwriter.writerow(['image_uri', 'image_id', 'product_set_id', 'product_id', 'product_category', \
                         'product_display_name', 'labels', 'bounding_poly'])
 
-with open(dest_folder + 'metadata_full.csv', 'w') as csvfile:
+with open(dest_folder + 'products_catalog.csv', 'w') as csvfile:
     tagwriter = csv.writer(csvfile, delimiter=',')
-    tagwriter.writerow(['image_uri', 'image_id', 'product_set_id', 'product_id', 'product_category', \
-                        'product_display_name', 'labels', 'bounding_poly', 'src', 'product_page', 'product_availability'])
+    tagwriter.writerow(['imageUrl', 'image_id', 'product_set_id', 'productId', 'product_category', \
+                        'name', 'labels', 'bounding_poly', 'src', 'productPage', 'availability'])
 
 for page in pageTags:
     container_a = page.find('a')
