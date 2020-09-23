@@ -1,12 +1,9 @@
 import requests
 from bs4 import BeautifulSoup
-import urllib3
 import csv
-import json
 import wget
 import os
 import ssl
-import re
 import datetime
 
 
@@ -17,7 +14,7 @@ dest_folder = Destination_Folder + folder_id + '/'
 
 os.makedirs(dest_folder, exist_ok=True)
 
-image_store = 'gs://prod-search-tool/' + folder_id
+image_store = 'gs://prod-search-tool/'
 
 if (not os.environ.get('PYTHONHTTPSVERIFY', '') and getattr(ssl, '_create_unverified_context', None)):
     ssl._create_default_https_context = ssl._create_unverified_context
@@ -32,16 +29,17 @@ pageTags = soup.find_all("div", {"class": "product"})
 os.makedirs(dest_folder, exist_ok=True)
 
 
-
-with open(dest_folder + 'product_search.csv', 'w') as csvfile:
+'''
+with open(dest_folder + 'product_search_' + folder_id + '.csv', 'w') as csvfile:
     tagwriter = csv.writer(csvfile, delimiter=',')
     tagwriter.writerow(['image_uri', 'image_id', 'product_set_id', 'product_id', 'product_category', \
                         'product_display_name', 'labels', 'bounding_poly'])
 
-with open(dest_folder + 'products_catalog.csv', 'w') as csvfile:
+with open(dest_folder + 'products_catalog_' + folder_id + '.csv', 'w') as csvfile:
     tagwriter = csv.writer(csvfile, delimiter=',')
     tagwriter.writerow(['imageUrl', 'image_id', 'product_set_id', 'productId', 'product_category', \
                         'name', 'labels', 'bounding_poly', 'src', 'productPage', 'availability'])
+'''
 
 for page in pageTags:
     container_a = page.find('a')
@@ -49,7 +47,7 @@ for page in pageTags:
 
     container_href = container_a.get('href')
     product_id = container_img.get('data-pid')
-    image_uri = image_store + '/' + product_id + '.jpg'
+    image_uri = image_store + product_id + '.jpg'
     image_id = ''
     product_set_id = 'athome'  # merchant_id
     product_id = container_img.get('data-pid')
@@ -63,12 +61,12 @@ for page in pageTags:
 
     try:
         wget.download(src, out=dest_folder)
-        with open(dest_folder + 'product_search.csv', 'a') as csvfile:
+        with open(Destination_Folder + 'product_search.csv', 'a') as csvfile:
             tagwriter = csv.writer(csvfile, delimiter=',')
             tagwriter.writerow([image_uri, image_id, product_set_id, product_id, product_category, \
                                 product_display_name, labels, bounding_poly])
 
-        with open(dest_folder + 'products_catalog.csv', 'a') as csvfile:
+        with open(Destination_Folder + 'products_catalog.csv', 'a') as csvfile:
             tagwriter = csv.writer(csvfile, delimiter=',')
             tagwriter.writerow([image_uri, image_id, product_set_id, product_id, product_category, \
                                 product_display_name, labels, bounding_poly, src, product_page, \
