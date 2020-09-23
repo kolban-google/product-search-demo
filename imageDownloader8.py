@@ -3,14 +3,19 @@ from bs4 import BeautifulSoup
 import csv
 import wget
 import os
+from os import path
 import ssl
 import datetime
 
 
 now = datetime.datetime.now()
 folder_id = now.strftime('%Y%m%d' + '-' + '%H%M%S')
-Destination_Folder = input('Input your folder directory: ')
+#Destination_Folder = input('Input your folder directory(include /): ')
+Destination_Folder = '/Users/waleowoeye/Documents/Working/imageScraper/'
+
 dest_folder = Destination_Folder + folder_id + '/'
+product_search = Destination_Folder + 'product_search.csv'
+products_catalog = Destination_Folder + 'products_catalog.csv'
 
 os.makedirs(dest_folder, exist_ok=True)
 
@@ -29,17 +34,26 @@ pageTags = soup.find_all("div", {"class": "product"})
 os.makedirs(dest_folder, exist_ok=True)
 
 
-'''
-with open(dest_folder + 'product_search_' + folder_id + '.csv', 'w') as csvfile:
-    tagwriter = csv.writer(csvfile, delimiter=',')
-    tagwriter.writerow(['image_uri', 'image_id', 'product_set_id', 'product_id', 'product_category', \
-                        'product_display_name', 'labels', 'bounding_poly'])
+def dld(dest_folder, src):
+    try:
+        wget.download(src, out=dest_folder)
+    except Exception:
+        print(Exception)
+        #continue
 
-with open(dest_folder + 'products_catalog_' + folder_id + '.csv', 'w') as csvfile:
-    tagwriter = csv.writer(csvfile, delimiter=',')
-    tagwriter.writerow(['imageUrl', 'image_id', 'product_set_id', 'productId', 'product_category', \
-                        'name', 'labels', 'bounding_poly', 'src', 'productPage', 'availability'])
-'''
+
+def product_search_header():
+    with open(Destination_Folder + 'product_search.csv', 'w') as csvfile:
+        tagwriter = csv.writer(csvfile, delimiter=',')
+        tagwriter.writerow(['image_uri', 'image_id', 'product_set_id', 'product_id', 'product_category', \
+                            'product_display_name', 'labels', 'bounding_poly'])
+
+def products_catalog_header():
+    with open(Destination_Folder + 'products_catalog.csv', 'w') as csvfile:
+        tagwriter = csv.writer(csvfile, delimiter=',')
+        tagwriter.writerow(['imageUrl', 'image_id', 'product_set_id', 'productId', 'product_category', \
+                            'name', 'labels', 'bounding_poly', 'src', 'productPage', 'availability'])
+
 
 for page in pageTags:
     container_a = page.find('a')
@@ -58,20 +72,25 @@ for page in pageTags:
     src = container_img.get('src')
     product_page = 'https://athome.com' + container_href
     product_availability = container_img.get('data-stock')
+    dld(dest_folder, src)
 
-    try:
-        wget.download(src, out=dest_folder)
-        with open(Destination_Folder + 'product_search.csv', 'a') as csvfile:
-            tagwriter = csv.writer(csvfile, delimiter=',')
-            tagwriter.writerow([image_uri, image_id, product_set_id, product_id, product_category, \
-                                product_display_name, labels, bounding_poly])
+    if (path.exists(product_search) == False):
+        print('no existing product_search file')
+        product_search_header()
 
-        with open(Destination_Folder + 'products_catalog.csv', 'a') as csvfile:
-            tagwriter = csv.writer(csvfile, delimiter=',')
-            tagwriter.writerow([image_uri, image_id, product_set_id, product_id, product_category, \
-                                product_display_name, labels, bounding_poly, src, product_page, \
-                                product_availability])
+    with open(Destination_Folder + 'product_search.csv', 'a') as csvfile:
+        tagwriter = csv.writer(csvfile, delimiter=',')
+        tagwriter.writerow([image_uri, image_id, product_set_id, product_id, product_category, \
+                            product_display_name, labels, bounding_poly])
 
-    except Exception:
-        print(Exception)
-        continue
+
+    if (path.exists(products_catalog) == False):
+        print('no existing products_catalog file')
+        products_catalog_header()
+
+    with open(Destination_Folder + 'products_catalog.csv', 'a') as csvfile:
+        tagwriter = csv.writer(csvfile, delimiter=',')
+        tagwriter.writerow([image_uri, image_id, product_set_id, product_id, product_category, \
+                            product_display_name, labels, bounding_poly, src, product_page, \
+                            product_availability])
+
