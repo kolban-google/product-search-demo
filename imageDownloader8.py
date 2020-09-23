@@ -10,8 +10,8 @@ import datetime
 
 now = datetime.datetime.now()
 folder_id = now.strftime('%Y%m%d' + '-' + '%H%M%S')
-#Destination_Folder = input('Input your folder directory(include /): ')
-Destination_Folder = '/Users/waleowoeye/Documents/Working/imageScraper/'
+Destination_Folder = input('Input your folder directory(include /): ')
+
 
 dest_folder = Destination_Folder + folder_id + '/'
 product_search = Destination_Folder + 'product_search.csv'
@@ -75,7 +75,7 @@ for page in pageTags:
     dld(dest_folder, src)
 
     if (path.exists(product_search) == False):
-        print('no existing product_search file')
+        print('no existing product_search file. Creating...')
         product_search_header()
 
     with open(Destination_Folder + 'product_search.csv', 'a') as csvfile:
@@ -85,7 +85,7 @@ for page in pageTags:
 
 
     if (path.exists(products_catalog) == False):
-        print('no existing products_catalog file')
+        print('no existing products_catalog file. Creating...')
         products_catalog_header()
 
     with open(Destination_Folder + 'products_catalog.csv', 'a') as csvfile:
