@@ -261,8 +261,8 @@ class App extends React.Component {
             )
           }
           </div>
-          <Container maxWidth="sm">
-            <GridList cellHeight={200} cols={5}>
+          <Container maxWidth="lg">
+            <GridList cellHeight={150} cols={5}>
               {
                 this.state.loading ? (<LinearProgress style={({width: '100%', height: "8px", marginTop: '8px'})}/>) : (
                 this.state.products.map((item) => (

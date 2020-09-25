@@ -28,6 +28,9 @@ be exposed as environment variables is we go further.
 * `API-KEY` - The API key to be used for access.
 * `PROJECT_ID` - The Project ID for the project hosting the Product Search definitions.
 * `REGION` - The Region hosting the Product Search definitions.
+
+The following *must* be set as environment variables:
+
 * `PRODUCT_SET_ID` - The name of the product set within the Product Search definitions that we are searching within.
 
 ## Response

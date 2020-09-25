@@ -1,20 +1,24 @@
 // Variables for the project
 //
-const API_KEY        = "2adbf59c-61fd-46f6-a2c7-2ac924dae30c";
-const PROJECT_ID     = "kolban-product-search"
-const REGION         = "us-east1"
-const PRODUCT_SET_ID = "my_product_set"
 
-const util    = require('util');
-const vision  = require('@google-cloud/vision');
+const API_KEY        = "2adbf59c-61fd-46f6-a2c7-2ac924dae30c";
+const PROJECT_ID     = "kolban-product-search";
+const REGION         = "us-east1";
+
+const util    = require("util");
+const vision  = require("@google-cloud/vision");
 //const fs      = require('fs');
 
 async function performProductSearch(imageContent) {
+    if (!process.env["PRODUCT_SET_ID"]) {
+        throw "PRODUCT_SET_ID environment variable is not set.";
+    }
+    const PRODUCT_SET_ID = process.env["PRODUCT_SET_ID"];
     //const content              = fs.readFileSync('images.jpeg', 'base64');
     //const content              = fs.readFileSync('3431.jpg', 'base64');
     const options = {};
     if (process.env.USE_CREDENTIALS_FILE) {
-        console.log(`Using credentials file: ${process.env.USE_CREDENTIALS_FILE}`)
+        console.log(`Using credentials file: ${process.env.USE_CREDENTIALS_FILE}`);
         options.keyFilename = process.env.USE_CREDENTIALS_FILE;
     }
     const productSearchClient  = new vision.ProductSearchClient(options);
@@ -26,7 +30,7 @@ async function performProductSearch(imageContent) {
         imageContext: {
             productSearchParams: {
                 productSet: productSetPath,
-                productCategories: ['apparel-v2'],
+                productCategories: ["general-v1"],
                 filter: ''
             },
         }
@@ -76,7 +80,7 @@ exports.function = async (req, res) => {
     }
 
     // Chgeck that we have an API key.
-    if (req.header('API-KEY') != API_KEY) {
+    if (req.header("API-KEY") != API_KEY) {
         res.status(500).send("Invalid API key");
         return; 
     }
@@ -86,7 +90,7 @@ exports.function = async (req, res) => {
     // * application/json
     // * application/json;charset
     //
-    if (!req.header('Content-Type').includes('application/json')) {
+    if (!req.header("Content-Type").includes("application/json")) {
         console.log(`Unexpected HTTP header value for Content-Type: ${req.header('Content-Type')}`);
         res.status(500).send("Unexpected content type");
         return;

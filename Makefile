@@ -4,9 +4,16 @@ PROJECT=kolban-product-search
 API-KEY=2adbf59c-61fd-46f6-a2c7-2ac924dae30c
 SERVICE-ACCOUNT=demo-sa@kolban-product-search.iam.gserviceaccount.com
 GCS-PREFIX=gs://kolban-fashion-products/fashion-dataset
-PRODUCT_SEARCH_PRODUCT_SET=my_product_set
+# PRODUCT_SET_ID must be set externally
 
-all:
+.PHONY: check-env
+
+check-env:
+ifndef PRODUCT_SET_ID
+	$(error PRODUCT_SET_ID is undefined)
+endif
+
+all: check-env
 	@echo "Configuration"
 	@echo "-------------"
 	@echo "run-react                 - Run the REACT environment."
@@ -19,6 +26,7 @@ all:
 	@echo "create-product-search     - Create the definitions for Product Search."
 	@echo "describe-product-search   - Examine the Product Search definition."
 	@echo "delete-product-search     - Delete the definitions for Product Search."
+	@echo "deploy                    - Deploy the web app."
 
 
 # Run react
@@ -47,7 +55,7 @@ test-cloud-function-local:
 
 
 # Deploy the Cloud Function on GCP.
-deploy-function:
+deploy-function: check-env
 	gcloud functions deploy product-search \
 		--project $(PROJECT) \
 		--region $(REGION) \
@@ -56,6 +64,7 @@ deploy-function:
 		--runtime nodejs10 \
 		--service-account $(SERVICE-ACCOUNT) \
 		--trigger-http \
+		--update-env-vars=PRODUCT_SET_ID=$(PRODUCT_SET_ID) \
 		--source ./cloud-function
 
 
@@ -81,16 +90,16 @@ create-product-search:
 	gcloud beta ml vision product-search product-sets import $(GCS-PREFIX)/40000_44424.csv --location $(REGION) --project $(PROJECT) >> /tmp/product_search.log
 
 # Display the details of the product search entry for the product set called "my_product_set".  Watch for index time being recent.
-describe-product-search:
-	gcloud beta ml vision product-search product-sets describe my_product_set \
+describe-product-search: check-env
+	gcloud beta ml vision product-search product-sets describe $(PRODUCT_SET_ID) \
 		--location $(REGION) \
 		--project $(PROJECT)
 
 # Delete the definitions for product search.  This includes products and product-sets.
-delete-product-search:
-	gcloud beta ml vision product-search product-sets delete $(PRODUCT_SEARCH_PRODUCT_SET) --location=$(REGION) --quiet --project $(PROJECT)
+delete-product-search: check-env
+	gcloud beta ml vision product-search product-sets delete $(PRODUCT_SET_ID) --location=$(REGION) --quiet --project $(PROJECT)
 	gcloud beta ml vision product-search product-sets list --location=$(REGION) --project $(PROJECT)
-	gcloud alpha ml vision product-search products delete-all $(REGION) --product-set $(PRODUCT_SEARCH_PRODUCT_SET) --force --project $(PROJECT)
+	gcloud alpha ml vision product-search products delete-all $(REGION) --product-set $(PRODUCT_SET_ID) --force --project $(PROJECT)
 	gcloud alpha ml vision product-search products delete-all $(REGION) --orphan-products --force --project $(PROJECT)
 	gcloud beta ml vision product-search products list --location=$(REGION) --project $(PROJECT)
 	
@@ -103,6 +112,7 @@ upload-csv:
 	gsutil cp 30000_39999.csv $(GCS-PREFIX)
 	gsutil cp 40000_44424.csv $(GCS-PREFIX)
 
+# Deploy the web app through Firebase.
 deploy:
 	npm run build
 	cd firebase; firebase deploy
